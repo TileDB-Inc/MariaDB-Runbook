@@ -1,5 +1,4 @@
 # MariaDB-Runbook
-
 ## Introduction and Considerations 
 ### This Runbook’s Objectives
 Currently TileDB Enterprise requires a MariaDB instance for account creation and token storage. Most clouds do not support a fully managed MariaDB instance, and on prem customers need a reliable way to deploy a resilient and reliable MariaDB instance. This runbook seeks to provide a recommended configuration of MariaDB using the MariaDB operator and Helm charts for customers seeking to run TileDB Enterprise within their environments.
@@ -34,9 +33,9 @@ To add the MariaDB Operator Helm chart, run the following:
 `helm repo add mariadb-operator https://mariadb-operator.github.io/mariadb-operator`
 Then, to install the MariadDB Operator Helm chart , run:
 `helm install mariadb-operator mariadb-operator/mariadb-operator  --set ha.enabled=true -n tiledb-cloud`
-You should see an output similar to:
+You should see an output similar to below.
 
-<add>
+![Installed operator](/images/operator_install.png "Installed Operator").
 
 Double check the deployment is ready to go by running 
 `Kubectl get pods -n tiledb-cloud` and confirming you see three pods with **mariadb-operator-** prefixes.
@@ -95,17 +94,17 @@ The first step we need to do to deploy our highly available cluster is to apply 
 
 You can then run `kubectl get secrets -n tiledb-cloud` to confirm the secrets have been created.
 
-//image
+![TileDB Cloud Secrets](/images/get_secret.png "Get Secrets")
 
 
 
 The next step will be to apply the **mariadb.yml** file by running `kubectl apply -f mariadb.yml`
 You can then run `kubectl get mariadb -n tiledb-cloud` to view the mariadb instance being created.
-//image
+![Deployed MariaDB Instance](/images/get_secret.png "Get MariaDB Instances ")
 
 It will take a few minutes for the cluster to be ready. To check the status of the pods run `kubectl get pods -n tiledb-cloud` you will then be able to see the pods name (in our case) tile-mariadb-0 tile-mariadb-1 tile-mariadb-2 these are StatefulSets. Once they are ready, you can move on to apply the other manifests. 
 
-//image 
+![Deployed MariaDB Pods](/images/get_mariadb_pods.png "Get MariaDB Pods")
 
 ### MariaDB Custom Resource Troubleshooting Tips
 Before moving onto the next step, we wanted to provide you with some additional information. Here are some tips and tricks.
@@ -113,7 +112,9 @@ Before moving onto the next step, we wanted to provide you with some additional 
 * If MariaDB pods are not showing 2/2 then a container is not ready.  `Run kubectl logs <not ready pod> -n tiledb-cloud` to view logs and troubleshoot issues. A few common issue is not having applied the root password secret or not having the appropriate permissions to create resources. 
 * If the pods are not present, you can run `kubectl describe mariadb <name of the applied mariadb resource> -n tiledb-cloud` and read any events the resource may be sharing.
 * If you run into problems with deploying your initial MariDB resource and need to delete it and recreate it for whatever reason (most common being trying to edit an immutable field), you will need to delete the `PersistentVolumeClaims` to ensure there are no leftover configurations. First, delete the mariadb instance by running `kubectl apply -f mariadb.yml`. Then, delete the `PersitentVolumeClaims`. Do this by running `kubectl get pvc -n tiledb-cloud` to view the `PersistentVolumeClaims`. Then, delete the claims associated with the previously deployed MariaDB instance by running `kubectl delete  pvc <claim1 name> <claim2 name> <claim3 name> -n tiledb-cloud`
-//image
+
+![Deployed MariaDB PVCs](/images/get_pvc.png "Get MariaDB PVCs")
+
 You can then recreate your MariaDB instance just like you did in previous steps. You will see a new `PersistentVolumeClaims`.
 
 **WARNING: Do NOT do the above PVC deletion step if the database is live and you have not created a `backup` resource (and associated job) you can confirm has run. You are deleting persistent volumes and can cause issues with users logging in and accessing resources. This step is most commonly executed on fresh MariaDB installs where no user data has been stored yet and you need to reattempt a deployment. DO NOT delete the backup PVC (see [Restoring to Your TileDB Cluster]())  either unless you have snapshotted it or can confirm you no longer need the backup data.**
@@ -123,12 +124,15 @@ You can then recreate your MariaDB instance just like you did in previous steps.
 ### Deploying the MariaDB Database Custom Resource Definitions
 Now that our MariaDB instance is up and running, we need to deploy the other resources. 
 First, deploy the database by running  `kubectl create -f database.yml` then confirming the database was ready with `kubectl get database -n tiledb-cloud`.
-//images 
+
+![Deployed MariaDB Database](/images/create_and_get_db.png "Apply and Get Database")
+
 
 ### Deploying the MariaDB User and Grant Custom Resource Definitions
 
 To deploy the required `user` and `grant` resources, run `kubectl create -f grant.yml and kubectl create -f user.yml`
-//image 
+
+![Deployed User and Grant](/images/create_user_and_grant.png "Apply and Get Grants and Users")
 
 
 You can view the status of these resources using the command pattern of `kubectl get <resource name>` and `kubectl describe <resource name>` just like we did for the `mariadb` resource and other resources we’ve applied to the cluster. 
@@ -140,13 +144,20 @@ Once the resources are deployed, you are ready to make some adjustments to the T
 ### Configuring the Main Database
 
 Roughly near line 157 in your values file, you will see a `Databases:` entry. That entry should look similar to below:
-// image 
+
+![Edit Databases values entry](/images/database_values.png "Edit Databases Values Entry")
+
+
 Just like the above image, enter the password that you set in your **tiledb-secret.yml** file ensuring it is decoded using `base64 -d` . Then, edit the `Username` key value to be the name of the `user` you created and the `Schema` key value to be the name of the `database` you created. Lastly, update the `Host` entry with the [Kubernetes service]() that the MariaDB instance is exposed under. Do find this value, run `kubectl get svc -n tiledb-cloud` and use the service named after your mariadb resource. See below. The FQDN will look similar to what is in the above image.
-// image
+
+![Get Deployed Services](/images/get_services.png "Get Services")
+
 
 ### Set MariaDB Database Connection DSN
 We now need to update the DSN. At roughly line 489 there is a [DSN](https://support.microsoft.com/en-us/topic/what-is-a-dsn-data-source-name-ae9a0c76-22fc-8a30-606e-2436fe26e89f) value like below.
-// image
+
+![Edit DSN](/images/DSN.png "Edit DSN")
+
 The format is `mysql://<username>:<password>@tcp(<mariadb kubernetes service>:3306)/<schema>?parseTime=true.` 
 Save the values file with your edits. You will still need to update the values file for the rest of TileDB install, but if applied and configured correctly, the MariaDB entries should be handled. Once the install is complete continue to the next section. 
 
@@ -154,7 +165,9 @@ Save the values file with your edits. You will still need to update the values f
 This section is not going to be a comprehensive troubleshooting guide for all things MariaDB, but will provide some techniques for troubleshooting common errors we've run into. 
 ### Initial Steps
 The most beneficial first step is to run `kubectl get pods -n tiledb-cloud` and evaluate which pods are not in a  `Running` state.  Any pods reporting errors (see below for examples) are worth investigating. When it comes to potential MariaDB issues being reported by TileDB Enterprise, the `hydra` and `cloud-rest` pods are potential culprits. Therefore, running  `kubectl get logs <pod name> -n tiledb-cloud` and `kubectl describe pod <pod name> -n tiledb-cloud` command is a good first step. It is worth noting that MariaDB configuration errors are commonly reported by [init containers](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/) within the `hydra` and `rest` pods. When running the commands, you will need to specify a container with the `-c` flag. The init container for the `hydra` pod is named `hydra-automigrate` and the `init` container for the REST server is named `tiledb-cloud-rest-migrations`. These are great containers to gather logs from during the initial install process if they are failing. See example below.
-// image
+
+![Get Logs](/images/gather_logs.png "Get Logs")
+
 ### Permission Errors
 The most common type of errors we see when configuring MariaDB for TileDB Enterprise are permission errors.  The MariaDB Operator `grant` CustomResourceDefinition handles the permissions, but you may run into issues between a `user` being granted the appropriate permissions and assigned to the correct `database`.  
 
@@ -232,7 +245,9 @@ HMAC(Hash-based Message Authentication Code) keys attached to the previously cre
 5. Save and apply the file by running `kubectl create -f scheduled_backup.yml`
 6. Check on the status of the `backup` by running `kubectl get backups -n tiledb-cloud`
 
-// images
+![Get Backups](/images/get-backups.png "Get Backups")
+
+
 #### Azure
 For Azure you will need:
 * A default [StorageClass](https://kubernetes.io/docs/concepts/storage/storage-classes/)
@@ -248,7 +263,7 @@ Worth noting, these steps will allow you to backup to **any Kubernetes cluster**
 
 **WARNING: The backups are now on a single Azure Disk. We recommend snapshotting the disk. You can do this declaratively in Kubernetes. A guide can be found (here)[https://learn.microsoft.com/en-us/azure/storage/container-storage/volume-snapshot-restore].***
 
-/images
+![Get Backups PVCs](/images/get_backup_pvc.png "Get Backup PVCs")
 
 
 #### Amazon Web Services  
@@ -260,11 +275,18 @@ For AWS you will need:
 ##### Backing up to Amazon S3
 1. Create and copy your access keys and credentials. (see below)
 2. Place the Access key value as the `object_id key` value in your and the Secret access key value as the `object_key key` value in the backup_creds.yml file.
-3. Apply the file to your Kubernetes TileDB cluster 
+3. Apply the file to your Kubernetes TileDB cluster
+
+![Get Access Key](/images/retrieve_access_key.png "Get Access Key")
+
+**UNDER CONSTRUCTION** 
 
 ### Restoring Your MariaDB Instance  to Your TileDB Cluster 
 Once you confirm that the bucket has a backup file, you can then deploy a `restore` resource that references the `backups`. To do this, apply the **restore.yml** manifest from the **data_protection** directory.  To use a specific backup, use the backup file name’s timestamp (I.E. /backup.2024-08-01T04:00:01Z.sql becomes 2024-08-01T04:00:01Z) and add it as the value to `targetRecoveryTime` in the **restore.yml** file. Once completed you should see an output similar to below. 
-//image 
+
+![Get Restores](/images/get_restore.png "Get Restores")
+ 
+
 #### Confirming the Restore Worked 
 To validate the restore worked properly run the following in order:
 
@@ -295,13 +317,14 @@ You should see several tables. To complete the restore you may need to delete th
 `kubectl logs tiledb-mariadb-mariadb-operator-549cb85bbb-bb8vh -n tiledb-cloud |less`
 Once the `backup` resource has the status `scheduled` you can check the `jobs` resource by `running kubectl get jobs -n tiledb-cloud` and inspecting the scheduled jobs like below
 
-// images
+![Get Restpres](/images/get_restore.png "Get Restores")
+
 
 You can also inspect the pods associated with the jobs and get logs by executing a command similar to `kubectl logs scheduled-backup-28707834-zvbw9 -n tiledb-cloud`
 
-confirm the backup was successful, you should be able to see a backup file within the designated bucket (if using cloud storage). See below.
+To confirm the backup was successful, you should be able to see a backup file within the designated bucket (if using cloud storage see below) or `PersistentVolume` 
 
-//image 
+[View Backups on Bucket](/images/view_bucket.png "View Backups on Bucket")
 
 
 
