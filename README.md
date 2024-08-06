@@ -100,9 +100,9 @@ You can then run `kubectl get secrets -n tiledb-cloud` to confirm the secrets ha
 
 The next step will be to apply the **mariadb.yml** file by running `kubectl apply -f mariadb.yml`
 You can then run `kubectl get mariadb -n tiledb-cloud` to view the mariadb instance being created.
-![Deployed MariaDB Instance](/images/get_secret.png "Get MariaDB Instances ")
+![Deployed MariaDB Instance](/images/get_mariadb_resource.png "Get MariaDB Instances ")
 
-It will take a few minutes for the cluster to be ready. To check the status of the pods run `kubectl get pods -n tiledb-cloud` you will then be able to see the pods name (in our case) tile-mariadb-0 tile-mariadb-1 tile-mariadb-2 these are StatefulSets. Once they are ready, you can move on to apply the other manifests. 
+It will take a few minutes for the cluster to be ready. To check the status of the pods run `kubectl get pods -n tiledb-cloud` you will then be able to see the pods name (in our case) `tile-mariadb-0` `tile-mariadb-1` `tile-mariadb-2` these are StatefulSets. Once they are ready, you can move on to apply the other manifests. 
 
 ![Deployed MariaDB Pods](/images/get_mariadb_pods.png "Get MariaDB Pods")
 
@@ -317,7 +317,7 @@ You should see several tables. To complete the restore you may need to delete th
 `kubectl logs tiledb-mariadb-mariadb-operator-549cb85bbb-bb8vh -n tiledb-cloud |less`
 Once the `backup` resource has the status `scheduled` you can check the `jobs` resource by `running kubectl get jobs -n tiledb-cloud` and inspecting the scheduled jobs like below
 
-![Get Restpres](/images/get_restore.png "Get Restores")
+![Get Sceduled Job](/images/get_jobs.png "Get Scheduled Jobs")
 
 
 You can also inspect the pods associated with the jobs and get logs by executing a command similar to `kubectl logs scheduled-backup-28707834-zvbw9 -n tiledb-cloud`
