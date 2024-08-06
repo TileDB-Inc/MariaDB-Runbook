@@ -1,0 +1,14 @@
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Grant
+metadata:
+  name: tiledb-grant
+  namespace: tiledb-cloud
+spec:
+  mariaDbRef:
+    name: tile-mariadb
+  privileges:
+    - "ALL PRIVILEGES"
+  database: "tile-rest"
+  table: "*"
+  username: tiledb
+  grantOption: false

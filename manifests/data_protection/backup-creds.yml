@@ -1,0 +1,10 @@
+#required to access object stores. 
+#For GCP use HMAC(Hash-based Message Authentication Code) keys. 
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backup-creds
+  namespace: tiledb-cloud
+stringData:
+  object_id:   # required field to access object
+  object_key: # required field to access object

@@ -1,0 +1,47 @@
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Backup
+metadata:
+  name: scheduled-backup
+  namespace: tiledb-cloud
+spec:
+  mariaDbRef:
+    name: tile-mariadb
+  schedule:
+    cron: "*/1 * * * *" # Adjust frequency of backup jobs based on RPO. If using PVC, ensure you adjust the storage size to reflect the frequency. 
+    suspend: false
+  maxRetention: 168h # retain backup for 24 hours. Make sure to adjust storage size if you are using PVCs.
+  storage:
+   # s3:
+    #  bucket: maria-bak 
+      # dependent on object store provider.
+      # GCP: storage.googleapis.com 
+      # Azure: commment out entire storage section and use PVC
+      # AWS: 
+     # endpoint: "chasemariabackup.blob.core.windows.net/" 
+      #accessKeyIdSecretKeyRef:
+       # name: "backup-creds"
+        #key: "object_id"
+      #secretAccessKeySecretKeyRef:
+       # name: "backup-creds"
+       # key: object_key
+      #tls:
+       # enabled: true
+    # Uncomment out below for Azure or to use local PV.
+    #persistentVolumeClaim:
+     # resources:
+      #  requests:
+       #   storage: 40Gi
+      #accessModes:
+      #  - ReadWriteOnce      
+  serviceAccountName: default
+  args:
+    - --single-transaction
+    - --all-databases
+  logLevel: info
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi

@@ -1,0 +1,12 @@
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Database
+metadata:
+  name: tile-rest
+  namespace: tiledb-cloud
+spec:
+  name: tile-rest
+  mariaDbRef:
+    name: tile-mariadb
+  characterSet: utf8
+  collate: utf8_general_ci
+

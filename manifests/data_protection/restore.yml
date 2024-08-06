@@ -1,0 +1,11 @@
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Restore
+metadata:
+  name: tile-restore
+  namespace: tiledb-cloud
+spec:
+  mariaDbRef:
+    name: tile-mariadb
+  backupRef:
+    name: scheduled-backup
+  targetRecoveryTime: 2024-08-01T04:00:01Z

@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pvc-viewer
+  namespace: tiledb-cloud
+spec:
+  containers:
+  - name: pvc-viewer
+    image: busybox
+    command: ["/bin/sh"]
+    args: ["-c", "sleep 3600"]
+    volumeMounts:
+    - mountPath: /pvc-view
+      name: scheduled-backup
+  volumes:
+  - name: scheduled-backup
+    persistentVolumeClaim:
+      claimName: scheduled-backup
+
