@@ -261,7 +261,7 @@ Worth noting, these steps will allow you to backup to **any Kubernetes cluster**
 4. Check the `PVC`s (see below) and you should see a backup `PVC` that has been provisioned. You are now ready to move onto a restore should you need it. You can define a specific backup or the resource will default to the most recent backup.
 5.  To explore the backup volume, you can use and edit the **pvc-viewer.yml** manifests provided in the data_protection directory. All you need to do is apply the manifest and exec into it. See below. You can then follow the standard restore steps [here] (MD link)
 
-**WARNING: The backups are now on a single Azure Disk. We recommend snapshotting the disk. You can do this declaratively in Kubernetes. A guide can be found [here](https://learn.microsoft.com/en-us/azure/storage/container-storage/volume-snapshot-restore).***
+***WARNING: The backups are now on a single Azure Disk. We recommend snapshotting the disk. You can do this declaratively in Kubernetes. A guide can be found [here](https://learn.microsoft.com/en-us/azure/storage/container-storage/volume-snapshot-restore).***
 
 ![Get Backups PVCs](/images/get_backup_pvc.png "Get Backup PVCs")
 
@@ -271,6 +271,8 @@ AWS (Amazon Web Services) is the simplest cloud to perform backups on due to its
 For AWS you will need: 
 * An AWS Access Key and Secret 
 * A S3 bucket with a backup container (you can name it whatever you want. We will name ours maria-bak)
+
+**Common EBS ISSUE!:** AWS EKS clusters **DO NOT** install the EBS driver by default. You may need to install the EBS Driver for your MariaDB instance using the guide [here](https://docs.aws.amazon.com/eks/latest/userguide/ebs-csi.html) 
 
 ##### Backing up to Amazon S3
 1. Create and copy your access keys and credentials. (see below)

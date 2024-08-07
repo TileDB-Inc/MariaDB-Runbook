@@ -11,21 +11,23 @@ spec:
     suspend: false
   maxRetention: 168h # retain backup for 24 hours. Make sure to adjust storage size if you are using PVCs.
   storage:
-   # s3:
-    #  bucket: maria-bak 
-      # dependent on object store provider.
+    s3:
+      bucket: chase-tiledb-cloud
+      # The endpoint value is dependent on cloud environment .
       # GCP: storage.googleapis.com 
-      # Azure: commment out entire storage section and use PVC
-      # AWS: 
-     # endpoint: "chasemariabackup.blob.core.windows.net/" 
-      #accessKeyIdSecretKeyRef:
-       # name: "backup-creds"
-        #key: "object_id"
-      #secretAccessKeySecretKeyRef:
-       # name: "backup-creds"
-       # key: object_key
-      #tls:
-       # enabled: true
+      # Azure: commment out entire storage section and use PVC. We do not use object for Azure.
+      # AWS:  s3.amazonaws.com
+      prefix: backups #folder name for backups 
+      endpoint: s3.amazonaws.com
+      #region: us-west-1 #required for AWS NOT for GCP
+      accessKeyIdSecretKeyRef:
+        name: "backup-creds"
+        key: "object_id"
+      secretAccessKeySecretKeyRef:
+        name: "backup-creds"
+        key: object_key
+      tls:
+        enabled: true
     # Uncomment out below for Azure or to use local PV.
     #persistentVolumeClaim:
      # resources:
