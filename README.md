@@ -241,9 +241,10 @@ HMAC(Hash-based Message Authentication Code) keys attached to the previously cre
 1. Create a service account, and a GCP bucket per the above instructions.
 2. Create and store the HMAC credentials in the **backup-creds.yml**  per the above instructions 
 3. Apply the **backup-creds.yml** file by running `kubectl create -f backup-creds.yml`
-4. Edit the **scheduled_backup.yml** file by setting the `endpoint` value to `https://storage.googleapis.com` and the bucket to your bucket path (i.e. chase_poc/maria-backup). 
-5. Save and apply the file by running `kubectl create -f scheduled_backup.yml`
-6. Check on the status of the `backup` by running `kubectl get backups -n tiledb-cloud`
+4. Edit the **scheduled_backup.yml** file by setting the `endpoint` value to `https://storage.googleapis.com` and the bucket to your bucket  (i.e. chase_poc).
+5. Then add your backup folder (i.e. backups) to the `prefix` entry.  
+6. Save and apply the file by running `kubectl create -f scheduled_backup.yml`
+7. Check on the status of the `backup` by running `kubectl get backups -n tiledb-cloud`
 
 ![Get Backups](/images/get-backups.png "Get Backups")
 
@@ -276,12 +277,13 @@ For AWS you will need:
 
 ##### Backing up to Amazon S3
 1. Create and copy your access keys and credentials. (see below)
-2. Place the Access key value as the `object_id key` value in your and the Secret access key value as the `object_key key` value in the backup_creds.yml file.
+2. Place the Access key value as the `object_id key` value in your and the Secret access key value as the `object_key key` value in the backup_creds.yml file. Do not forget to base64 encode them. 
 3. Apply the file to your Kubernetes TileDB cluster
 
 ![Get Access Key](/images/retrieve_access_key.png "Get Access Key")
 
-**UNDER CONSTRUCTION** 
+4. Edit the `endpoint` and `prefix` values as well as the `region` values.
+5. Apply the **scheduled_backup.yml** file.
 
 ### Restoring Your MariaDB Instance  to Your TileDB Cluster 
 Once you confirm that the bucket has a backup file, you can then deploy a `restore` resource that references the `backups`. To do this, apply the **restore.yml** manifest from the **data_protection** directory.  To use a specific backup, use the backup file name’s timestamp (I.E. /backup.2024-08-01T04:00:01Z.sql becomes 2024-08-01T04:00:01Z) and add it as the value to `targetRecoveryTime` in the **restore.yml** file. Once completed you should see an output similar to below. 

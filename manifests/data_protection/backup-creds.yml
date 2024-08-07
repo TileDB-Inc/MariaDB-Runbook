@@ -7,5 +7,5 @@ metadata:
   name: backup-creds
   namespace: tiledb-cloud
 stringData:
-  object_id:  QUtJQTJIWk5TQ0RESjZPTDJaM1kK   # required field to access object
-  object_key: UzRpSUFEMHhLMGZOZGg0VUdKdFhzbldiN1FXZWRlRENEUHhUbmVLeQo= # required field to access object
+  object_id:     # required field to access object
+  object_key:  # required field to access object
