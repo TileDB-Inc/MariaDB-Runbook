@@ -305,13 +305,6 @@ To validate the restore worked properly run the following in order:
 You should see several tables. To complete the restore you may need to delete the rest, hydra, and UI pods ensuring they connect to the restore database. Once pods are healthy, users may reconnect to the TileDB self-hosted instance. You may need to restart the pods. If you choose to redeploy TileDB using the previously provisioned MariaDB instance, you will not need to create fresh databases. The migration scripts should automatically detect the previous configuration and move onto the rest of the deployment. If you see initial errors, you may need to wait 5-10 minutes for the applications to resolve the issue. 
 
 
-
-
-
-
-
-
-
 #### Backup Resource Troubleshooting Steps
  If you run into errors with the `backup` resource, you can describe the resource or you can get logs from the MariaDB Operator for more robust error reports. You can pipe the log into less for easier search like so: 
 `kubectl logs tiledb-mariadb-mariadb-operator-549cb85bbb-bb8vh -n tiledb-cloud |less`
