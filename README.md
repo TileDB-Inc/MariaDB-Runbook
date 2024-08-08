@@ -2,6 +2,7 @@
 ## Introduction and Considerations 
 ### This Runbook’s Objectives
 Currently TileDB Enterprise requires a MariaDB instance for account creation and token storage. Most clouds do not support a fully managed MariaDB instance, and on prem customers need a reliable way to deploy a resilient and reliable MariaDB instance. This runbook seeks to provide a recommended configuration of MariaDB using the MariaDB operator and Helm charts for customers seeking to run TileDB Enterprise within their environments.
+
 ### Words of Caution Around Production and Support 
 This runbook was designed to help customers who do not wish to levarege a supported MariaDB deployment. This runbook is not meant to be the be all and end all guide to running MariaDB. 
 The TileDB team **DOES NOT** guarantee **ANY** level of support for **ANY** deployed MariaDB instance or this runbook in general. We highly recommend using a managed MariaDB solution such as [Amazon RDS for MariaDB](https://aws.amazon.com/rds/mariadb/) or reaching out to the [MariaDB team directly](https://mariadb.com/services/technical-support-services/) for support. Should teams have database expertise in house, they can opt into using this runbook to deploy a MariaDB instance using the [MariaDB Operator](https://github.com/mariadb-operator/mariadb-operator) with [community support](https://github.com/mariadb-operator/mariadb-operator?tab=readme-ov-file#get-in-touch). We highly recommend teams seeking to leverage the MariaDB Operator have at the very least basic Kubernetes admin skills and foundational knowledge of the environment they wish to deploy their MariaDB instance to. The TileDB team **DOES NOT** gurantee **ANY** level of support for **ANY** deployed MariaDB instance or this runbook in general. By using this runbook you are accepting the level of risk that comes with deploying, manaaging, and supporting an OpenSource solution.
@@ -75,7 +76,6 @@ The **mariadb.yml** will create our `MariaDB` instance named *tile-mariadb*. Thi
  **user.yml** will use the secret we create with the user's credentials. The default **user.yml** creates a `tiledb` user mapped to the default `tile-mariadb` MariaDB instance.
  
 ## High Availability Overview   
-
 High availability guidelines are provided [here](https://github.com/mariadb-operator/mariadb-operator/blob/main/docs/HA.md).  
 
 The Recommend HA setup for production is:
@@ -84,6 +84,8 @@ The Recommend HA setup for production is:
 *Define pod disruption budgets.
 *Object store for backup (Google Cloud Storage,Amazon S3)
 The `mariadb-operator` provides cloud native support for provisioning and operating multi-master MariaDB clusters using Galera. This setup enables the ability to perform both read and write operations on all nodes, enhancing availability and allowing scalability across multiple nodes. All nodes support reads and writes. We have a designated primary where the writes are performed.
+### A Word on High Availability
+There are many ways to deploy an HA environment the Galera configuration is one of many ways. Another topology is a Single master HA via [SemiSync Replication](xhttps://github.com/mariadb-operator/mariadb-operator/blob/main/examples/manifests/mariadb_replication.yaml): The primary node allows both reads and writes, while secondary nodes only allow reads. We will not be covering that toplology in this runbook, but it is an approach you can take should you desire. 
 
 ## Deploying the MariaDB Instance for TileDB
 
