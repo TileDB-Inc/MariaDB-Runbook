@@ -102,7 +102,8 @@ The first step we need to do to deploy our highly available cluster is to apply 
 `kubectl apply -f tiledb-secret.yml` and `kubectl apply -f tiledb-root-secret.yml`
 
 
-You can then run `kubectl get secrets -n tiledb-cloud` to confirm the secrets have been created.
+You can then run `kubectl get secrets -n tiledb-cloud` to confirm the secrets have been created. 
+*WARNNING! DO NOT USE THE SECRETS WITHOUT CHANGING THE BASE64 VALUES WE PROVIDED. THESE ARE EXAMPLE SECRETS ONLY AND NOT FOR PRODUCTION PLEASE ADJUST YOUR SECRETS*
 
 ![TileDB Cloud Secrets](/images/get_secret.png "Get Secrets")
 

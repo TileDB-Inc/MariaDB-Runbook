@@ -13,9 +13,9 @@ spec:
     purpose: tiledb-core
   tolerations:
     - key: "purpose"
-      operator: "equal"
+      operator: "Equal"
       value: "tiledb-core"
-      effect: "NoSchedule   
+      effect: "NoSchedule"   
   port: 3306
   storage:
     size: 5Gi
