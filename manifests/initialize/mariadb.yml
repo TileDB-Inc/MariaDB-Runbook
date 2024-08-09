@@ -9,6 +9,13 @@ spec:
     generate: false
     key: root-password
     name: tiledb-root
+  nodeSelector:  #comment out below if not using specified nodes. Edit if using different labels.
+    purpose: tiledb-core
+  tolerations:
+    - key: "purpose"
+      operator: "equal"
+      value: "tiledb-core"
+      effect: "NoSchedule   
   port: 3306
   storage:
     size: 5Gi

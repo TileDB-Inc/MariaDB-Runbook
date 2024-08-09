@@ -23,6 +23,8 @@ MariaDB currently hosts user information and potentially credentials depending o
 
 
 ### Deployment Guide
+### Advanced Scheduling 
+Users may wish to use dedicated nodes for the MariaDB operator, or assign the database nodes to be alongside the other TileDB core components. To do this, you will need to implement a strategy that uses [taints, tolerations,and node selectors](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/). We provide examples of node selectors and tolerations in the manifests. You will need taint your desired nodes using a process specified by your cloud provider. We pass the tolerations imperativly via the `helm install` command
 ### Clone tileDB MariaDB Runbook Repo
 To clone the repo, run `git clone` from your commandline while referencing this repo. Then navigate to the newly created `MariaDB-Runbook` directory.
 ### Deploying the MariaDB Operator 
@@ -34,6 +36,7 @@ To add the MariaDB Operator Helm chart, run the following:
 `helm repo add mariadb-operator https://mariadb-operator.github.io/mariadb-operator`
 Then, to install the MariadDB Operator Helm chart , run:
 `helm install mariadb-operator mariadb-operator/mariadb-operator  --set ha.enabled=true -n tiledb-cloud`
+If you are using dedicated nodes the command will look like `helm install mariadb-operator mariadb-operator/mariadb-operator  --set ha.enabled=true  --set nodeSelector.purpose="tiledb-core" --set "tolerations[0].key=purpose" --set "tolerations[0].operator=Equal" --set "tolerations[0].value=tiledb-core"  --set "tolerations[0].effect=NoSchedule"  --set webhook.nodeSelector.purpose="tiledb-core" --set "webhook.tolerations[0].key=purpose" --set "webhook.tolerations[0].operator=Equal" --set "webhook.tolerations[0].value=tiledb-core"  --set "webhook.tolerations[0].effect=NoSchedule" --set certController.nodeSelector.purpose="tiledb-core" --set "certController.tolerations[0].key=purpose" --set "certController.tolerations[0].operator=Equal" --set "certController.tolerations[0].value=tiledb-core"  --set "certController.tolerations[0].effect=NoSchedule" -n tiledb-cloud` Be sure to adjust the keys and tolerations to your environment.
 You should see an output similar to below.
 
 ![Installed operator](/images/operator_install.png "Installed Operator").
@@ -43,7 +46,7 @@ Double check the deployment is ready to go by running
 
 If you see no pending pods, you are ready to configure and deploy your MariaDB instance. 
 
-## Deploying and Configuring Your MariaDB Instnace 
+## Deploying and Configuring Your MariaDB Instance 
 As previously mentioned, MariaDB and supporting configurations can be deployed via Custom Resource Definitions.  Our MariaDB instance Custom Resource Definitions are in the **/initialize** directory of the MariaDB Operator repo you just cloned. Navigate to **/initialize** to view, edit, and apply the manifests in order to configure your MariaDB instance.
 
 Within that directory you should see the following files:
@@ -87,7 +90,12 @@ The `mariadb-operator` provides cloud native support for provisioning and operat
 ### A Word on High Availability
 There are many ways to deploy an HA environment the Galera configuration is one of many ways. Another topology is a Single master HA via [SemiSync Replication](xhttps://github.com/mariadb-operator/mariadb-operator/blob/main/examples/manifests/mariadb_replication.yaml): The primary node allows both reads and writes, while secondary nodes only allow reads. We will not be covering that toplology in this runbook, but it is an approach you can take should you desire. 
 
+
+
 ## Deploying the MariaDB Instance for TileDB
+
+
+### Process
 
 The first step we need to do to deploy our highly available cluster is to apply our **tiledb-secret.yml** and **tiledb-root-secret.yml* secrets to the cluster by running 
 
@@ -103,6 +111,7 @@ You can then run `kubectl get secrets -n tiledb-cloud` to confirm the secrets ha
 The next step will be to apply the **mariadb.yml** file by running `kubectl apply -f mariadb.yml`
 You can then run `kubectl get mariadb -n tiledb-cloud` to view the mariadb instance being created.
 ![Deployed MariaDB Instance](/images/get_mariadb_resource.png "Get MariaDB Instances ")
+
 
 It will take a few minutes for the cluster to be ready. To check the status of the pods run `kubectl get pods -n tiledb-cloud` you will then be able to see the pods name (in our case) `tile-mariadb-0` `tile-mariadb-1` `tile-mariadb-2` these are StatefulSets. Once they are ready, you can move on to apply the other manifests. 
 
